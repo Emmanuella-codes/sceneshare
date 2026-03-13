@@ -5,3 +5,10 @@ dist/
 output/
 *.zip
 flow/
+
+# yarn berry
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
