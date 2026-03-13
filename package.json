@@ -1,0 +1,12 @@
+{
+    "name": "sceneshare",
+    "private": true,
+    "engines": {
+        "node": ">=22"
+    },
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "packageManager": "yarn@4.13.0"
+}
