@@ -24,7 +24,7 @@ type CreateLinkParams struct {
 	TimestampS int
 	Title      *string
 	Thumbnail  *string
-	ExpiresIn  *int
+	OwnerToken string
 	ExpiresAt  *time.Time
 }
 
@@ -38,7 +38,8 @@ type LinkResponse struct {
 	TimestampFmt string  `json:"timestamp_fmt"`
 	Title        *string `json:"title"`
 	Thumbnail    *string `json:"thumbnail"`
+	OwnerToken   *string `json:"owner_token,omitempty"`
 	ClickCount   int     `json:"click_count"`
 	CreatedAt    string  `json:"created_at"`
-	ExpiresAt    *string `json:"expires_at"`
+	ExpiresAt    *string `json:"expires_at,omitempty"`
 }

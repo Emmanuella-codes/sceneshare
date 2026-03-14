@@ -14,6 +14,7 @@ import (
 
 var ErrNotFound = errors.New("not found")
 var ErrExpired = errors.New("link expired")
+var ErrForbidden = errors.New("forbidden")
 
 type Store struct {
 	db *pgxpool.Pool
@@ -37,9 +38,9 @@ func (s *Store) Close() {
 
 func (s *Store) CreateLink(ctx context.Context, params dtos.CreateLinkParams) (*models.Link, error) {
 	query := `
-		INSERT INTO links (short_code, platform, content_id, timestamp_s, title, thumbnail, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, short_code, platform, content_id, timestamp_s, title, thumbnail, created_by, created_at, expires_at, click_count
+		INSERT INTO links (short_code, platform, content_id, timestamp_s, title, thumbnail, owner_token, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, short_code, platform, content_id, timestamp_s, title, thumbnail, owner_token, created_by, created_at, expires_at, click_count
 	`
 
 	row := s.db.QueryRow(ctx, query,
@@ -49,6 +50,7 @@ func (s *Store) CreateLink(ctx context.Context, params dtos.CreateLinkParams) (*
 		params.TimestampS,
 		params.Title,
 		params.Thumbnail,
+		params.OwnerToken,
 		params.ExpiresAt,
 	)
 	return scanLink(row)
@@ -56,7 +58,7 @@ func (s *Store) CreateLink(ctx context.Context, params dtos.CreateLinkParams) (*
 
 func (s *Store) GetLinkByCode(ctx context.Context, code string) (*models.Link, error) {
 	query := `
-		SELECT id, short_code, platform, content_id, timestamp_s, title, thumbnail, created_by, created_at, expires_at, click_count
+		SELECT id, short_code, platform, content_id, timestamp_s, title, thumbnail, owner_token, created_by, created_at, expires_at, click_count
 		FROM links
 		WHERE short_code = $1
 	`
@@ -75,13 +77,20 @@ func (s *Store) GetLinkByCode(ctx context.Context, code string) (*models.Link, e
 	return link, nil
 }
 
-func (s *Store) DeleteLink(ctx context.Context, code string) error {
-	result, err := s.db.Exec(ctx, `DELETE FROM links WHERE short_code = $1`, code)
+func (s *Store) DeleteLink(ctx context.Context, code, token string) error {
+	result, err := s.db.Exec(ctx, `DELETE FROM links WHERE short_code = $1 AND owner_token = $2`, code, token)
 	if err != nil {
 		return err
 	}
 	if result.RowsAffected() == 0 {
-		return ErrNotFound
+		var exists bool
+		if err := s.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM links WHERE short_code = $1)`, code).Scan(&exists); err != nil {
+			return err
+		}
+		if !exists {
+			return ErrNotFound
+		}
+		return ErrForbidden
 	}
 	return nil
 }
@@ -121,6 +130,7 @@ func scanLink(row pgx.Row) (*models.Link, error) {
 		&link.TimestampS,
 		&link.Title,
 		&link.Thumbnail,
+		&link.OwnerToken,
 		&link.CreatedBy,
 		&link.CreatedAt,
 		&link.ExpiresAt,
