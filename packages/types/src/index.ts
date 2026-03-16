@@ -29,3 +29,9 @@ export interface VideoInfo {
     thumbnail: string;
     timestamp_s: number;
 }
+
+export interface Stats {
+    short_code: string;
+    click_count: number;
+    created_at: string;
+}
