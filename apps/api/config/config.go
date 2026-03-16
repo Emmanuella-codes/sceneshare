@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Port        string
-	BaseURL     string
-	DatabaseURL string
+	Port           string
+	BaseURL        string
+	DatabaseURL    string
+	AllowedOrigins []string
 }
 
 func Load() (*Config, error) {
@@ -20,6 +21,10 @@ func Load() (*Config, error) {
 		Port:        getEnv("PORT", "4006"),
 		BaseURL:     getEnv("BASE_URL", ""),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
+	}
+
+	if cfg.BaseURL == "" {
+		return nil, fmt.Errorf("BASE_URL is required")
 	}
 
 	if cfg.DatabaseURL == "" {
