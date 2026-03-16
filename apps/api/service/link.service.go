@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Emmanuella-codes/sceneshare/api/dtos"
@@ -15,6 +18,12 @@ import (
 
 const alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
 const codeLength = 7
+const maxCreateAttempts = 5
+
+var ErrNotFound = errors.New("link not found")
+var ErrExpired = errors.New("link expired")
+var ErrForbidden = errors.New("forbidden")
+var ErrUnsupportedPlatform = errors.New("unsupported platform")
 
 type LinkService struct {
 	store   *store.Store
@@ -26,17 +35,8 @@ func NewLinkService(store *store.Store, baseURL string) *LinkService {
 }
 
 func (s *LinkService) CreateLink(ctx context.Context, input *dtos.CreateLinkInput) (*dtos.LinkResponse, error) {
-	if !input.Platform.IsValid() {
-		return nil, &utils.ValidationError{Field: "platform", Message: "must be one of: youtube"} // extend when new platforms are added
-	}
-
-	if err := utils.ValidateContentID(input.Platform, input.ContentID); err != nil {
+	if err := utils.ValidateCreateLinkInput(input); err != nil {
 		return nil, err
-	}
-
-	code, err := gonanoid.Generate(alphabet, codeLength)
-	if err != nil {
-		return nil, fmt.Errorf("generating code: %w", err)
 	}
 
 	ownerToken, err := gonanoid.Generate(alphabet, 24)
@@ -45,7 +45,6 @@ func (s *LinkService) CreateLink(ctx context.Context, input *dtos.CreateLinkInpu
 	}
 
 	params := dtos.CreateLinkParams{
-		ShortCode:  code,
 		Platform:   input.Platform,
 		ContentID:  input.ContentID,
 		TimestampS: input.TimestampS,
@@ -59,13 +58,27 @@ func (s *LinkService) CreateLink(ctx context.Context, input *dtos.CreateLinkInpu
 		params.ExpiresAt = &t
 	}
 
-	created, err := s.store.CreateLink(ctx, params)
-	if err != nil {
-		return nil, err
+	// Retry on rare code collisions instead of surfacing them as 500s.
+	var created *models.Link
+	for attempt := 0; attempt < maxCreateAttempts; attempt++ {
+		code, err := gonanoid.Generate(alphabet, codeLength)
+		if err != nil {
+			return nil, fmt.Errorf("generating code: %w", err)
+		}
+
+		params.ShortCode = code
+		created, err = s.store.CreateLink(ctx, params)
+		if err == nil {
+			resp := toResponse(created, s.baseURL)
+			resp.OwnerToken = &created.OwnerToken
+			return resp, nil
+		}
+		if !errors.Is(err, store.ErrCodeConflict) {
+			return nil, mapStoreError(err)
+		}
 	}
-	resp := toResponse(created, s.baseURL)
-	resp.OwnerToken = &created.OwnerToken
-	return resp, nil
+
+	return nil, fmt.Errorf("creating short code: %w", store.ErrCodeConflict)
 }
 
 func (s *LinkService) GetLink(ctx context.Context, code string) (*dtos.LinkResponse, error) {
@@ -81,7 +94,7 @@ func (s *LinkService) GetLinkForRedirect(ctx context.Context, code string) (*mod
 }
 
 func (s *LinkService) DeleteLink(ctx context.Context, code, token string) error {
-	return s.store.DeleteLink(ctx, code, token)
+	return mapStoreError(s.store.DeleteLink(ctx, code, token))
 }
 
 func (s *LinkService) GetStats(ctx context.Context, code string) (*dtos.StatsResponse, error) {
@@ -109,17 +122,47 @@ func (s *LinkService) RecordClick(linkID, userAgent, referrer string) {
 	}
 }
 
-func BuildDeepLink(link *models.Link) string {
+// BuildDeepLink preserves the saved playback offset in the platform URL.
+func BuildDeepLink(link *models.Link) (string, error) {
 	switch link.Platform {
 	case models.PlatformYoutube:
-		return fmt.Sprintf("https://www.youtube.com/watch?v=%s", link.ContentID)
+		target := &url.URL{
+			Scheme: "https",
+			Host:   "www.youtube.com",
+			Path:   "/watch",
+		}
+		query := target.Query()
+		query.Set("v", link.ContentID)
+		if link.TimestampS > 0 {
+			query.Set("t", strconv.Itoa(link.TimestampS)+"s")
+		}
+		target.RawQuery = query.Encode()
+		return target.String(), nil
 	default:
-		return ""
+		return "", ErrUnsupportedPlatform
 	}
 }
 
 func (s *LinkService) getLink(ctx context.Context, code string) (*models.Link, error) {
-	return s.store.GetLinkByCode(ctx, code)
+	link, err := s.store.GetLinkByCode(ctx, code)
+	if err != nil {
+		return nil, mapStoreError(err)
+	}
+	return link, nil
+}
+
+// translates persistence failures into service-level errors.
+func mapStoreError(err error) error {
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		return ErrNotFound
+	case errors.Is(err, store.ErrExpired):
+		return ErrExpired
+	case errors.Is(err, store.ErrForbidden):
+		return ErrForbidden
+	default:
+		return err
+	}
 }
 
 func toResponse(l *models.Link, baseURL string) *dtos.LinkResponse {

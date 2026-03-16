@@ -40,6 +40,13 @@ func main() {
 	defer db.Close()
 	slog.Info("connected to database")
 
+	// Apply the current schema on startup so local development does not depend on manual setup.
+	if err := db.RunMigrations(ctx); err != nil {
+		slog.Error("running migrations", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("database schema ready")
+
 	linkService := service.NewLinkService(db, cfg.BaseURL)
 	h := handler.New(linkService)
 

@@ -12,8 +12,8 @@ type CreateLinkInput struct {
 	ContentID  string          `json:"content_id" validate:"required,min=1,max=200"`
 	TimestampS int             `json:"timestamp_s" validate:"min=0"`
 	Title      *string         `json:"title" validate:"omitempty,max=500"`
-	Thumbnail  *string         `json:"thumbnail" validate:"omitempty,url,max=1000"`
-	ExpiresIn  *int            `json:"expires_in" validate:"omitempty,duration"`
+	Thumbnail  *string         `json:"thumbnail" validate:"omitempty,max=1000,http_url"`
+	ExpiresIn  *int            `json:"expires_in" validate:"omitempty,gt=0"`
 }
 
 // short code generation parameters

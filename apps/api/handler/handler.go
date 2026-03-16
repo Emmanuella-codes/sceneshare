@@ -7,7 +7,6 @@ import (
 
 	"github.com/Emmanuella-codes/sceneshare/api/dtos"
 	"github.com/Emmanuella-codes/sceneshare/api/service"
-	"github.com/Emmanuella-codes/sceneshare/api/store"
 	"github.com/Emmanuella-codes/sceneshare/api/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -94,7 +93,11 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	go h.links.RecordClick(link.ID, r.UserAgent(), r.Referer())
 
-	target := service.BuildDeepLink(link)
+	target, err := service.BuildDeepLink(link)
+	if err != nil {
+		writeLinkError(w, err)
+		return
+	}
 	http.Redirect(w, r, target, http.StatusFound)
 }
 
@@ -110,12 +113,14 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 
 func writeLinkError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, store.ErrNotFound):
+	case errors.Is(err, service.ErrNotFound):
 		writeError(w, http.StatusNotFound, "LINK_NOT_FOUND", "link does not exist")
-	case errors.Is(err, store.ErrExpired):
+	case errors.Is(err, service.ErrExpired):
 		writeError(w, http.StatusGone, "LINK_EXPIRED", "link has expired")
-	case errors.Is(err, store.ErrForbidden):
+	case errors.Is(err, service.ErrForbidden):
 		writeError(w, http.StatusForbidden, "FORBIDDEN", "invalid owner token")
+	case errors.Is(err, service.ErrUnsupportedPlatform):
+		writeError(w, http.StatusInternalServerError, "UNSUPPORTED_PLATFORM", "link platform is not configured for redirects")
 	default:
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "something went wrong")
 	}

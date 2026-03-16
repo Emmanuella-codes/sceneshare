@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -30,12 +29,6 @@ func Load() (*Config, error) {
 
 	if cfg.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
-	}
-
-	if raw := os.Getenv("ALLOWED_ORIGINS"); raw != "" {
-		cfg.AllowedOrigins = strings.Split(raw, ",")
-	} else {
-		cfg.AllowedOrigins = []string{"http://localhost:3000"}
 	}
 
 	return cfg, nil

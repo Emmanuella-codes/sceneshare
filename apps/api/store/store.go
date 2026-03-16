@@ -9,12 +9,14 @@ import (
 	"github.com/Emmanuella-codes/sceneshare/api/dtos"
 	"github.com/Emmanuella-codes/sceneshare/api/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var ErrNotFound = errors.New("not found")
 var ErrExpired = errors.New("link expired")
 var ErrForbidden = errors.New("forbidden")
+var ErrCodeConflict = errors.New("short code conflict")
 
 type Store struct {
 	db *pgxpool.Pool
@@ -137,6 +139,10 @@ func scanLink(row pgx.Row) (*models.Link, error) {
 		&link.ClickCount,
 	)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrCodeConflict
+		}
 		return nil, fmt.Errorf("scanning link: %w", err)
 	}
 	return &link, nil
