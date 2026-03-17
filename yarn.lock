@@ -1267,7 +1267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sceneshare/types@workspace:packages/types":
+"@sceneshare/types@workspace:*, @sceneshare/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@sceneshare/types@workspace:packages/types"
   languageName: unknown
@@ -8177,6 +8177,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "wxt-react-starter@workspace:apps/extension"
   dependencies:
+    "@sceneshare/types": "workspace:*"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@wxt-dev/module-react": "npm:^1.1.5"

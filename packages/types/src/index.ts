@@ -8,6 +8,7 @@ export interface Link {
     timestamp_s: number;
     timestamp_fmt: string;
     title: string | null;
+    thumbnail: string | null;
     click_count: number;
     created_at: string;
     expires_at: string | null;

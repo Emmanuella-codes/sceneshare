@@ -27,7 +27,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
         code = body.code ?? code;
         message = body.message ?? message;
     } catch (error) {
-
+        console.error(error); // 
     }
 
     if (res.status === 404) throw new NotFoundError(res.status, code, message);
