@@ -8,6 +8,7 @@ export interface Link {
     timestamp_s: number;
     timestamp_fmt: string;
     title: string | null;
+    thumbnail: string | null;
     click_count: number;
     created_at: string;
     expires_at: string | null;
@@ -28,4 +29,10 @@ export interface VideoInfo {
     title: string;
     thumbnail: string;
     timestamp_s: number;
+}
+
+export interface Stats {
+    short_code: string;
+    click_count: number;
+    created_at: string;
 }
