@@ -36,13 +36,12 @@ export default function LinkPreview({ link }: Props) {
 
   return (
     <div className="min-h-screen bg-white">
+      <Header view="redirect" link={link} />
       <main className="relative flex min-h-[calc(100vh-1px)] flex-col items-center justify-center px-4 py-24 sm:px-6 sm:py-12">
         <div className="fixed inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-1/2 left-1/2 h-[260px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-[90px] sm:h-[300px] sm:w-[500px] sm:blur-[100px]" />
         </div>
-        <div className="relative w-full max-w-lg animate-fade-up">
-          <Header view="redirect" link={link} />
-        </div>
+       
         <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-black/12 bg-[#17171c] shadow-2xl glow-amber">
           <div className="relative aspect-video bg-elevated overflow-hidden">
             {link.thumbnail ? (

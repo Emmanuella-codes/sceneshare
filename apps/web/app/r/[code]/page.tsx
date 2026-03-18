@@ -45,9 +45,9 @@ function LinkState({
           <div className="absolute top-1/2 left-1/2 h-[260px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-[90px] sm:h-[300px] sm:w-[500px] sm:blur-[100px]" />
         </div>
         <Header view="landing" />
-        <div className="relative w-full max-w-lg rounded-2xl border border-black/12 bg-[#17171c] p-8 text-center shadow-2xl glow-amber">
-          <h1 className="font-display text-3xl text-text-primary">{title}</h1>
-          <p className="mt-3 text-sm text-text-secondary">{message}</p>
+        <div className="relative w-full max-w-lg rounded-2xl border border-black/12 bg-[#ffffff] p-8 text-center shadow-2xl glow-amber">
+          <h1 className="font-display text-3xl text-gray-600">{title}</h1>
+          <p className="mt-3 text-sm text-black">{message}</p>
         </div>
       </main>
       <Footer view="landing" />
