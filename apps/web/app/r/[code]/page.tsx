@@ -17,6 +17,7 @@ function buildPreviewLink(code: string): Link {
   return {
     id: "preview-link",
     short_code: code,
+    short_url: `http://localhost:3001/r/${code}`,
     platform: "youtube",
     content_id: "dQw4w9WgXcQ",
     timestamp_s: 83,
@@ -24,6 +25,7 @@ function buildPreviewLink(code: string): Link {
     title: "SceneShare preview moment",
     thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
     click_count: 42,
+    owner_token: null,
     created_at: new Date().toISOString(),
     expires_at: null,
   };
