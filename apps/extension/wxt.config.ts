@@ -6,7 +6,7 @@ export default defineConfig({
   manifest: {
     name: 'SceneShare',
     description: 'Share a moment from any video',
-    permissions: ['activeTab', 'clipboardWrite', 'storage'],
+    permissions: ['activeTab', 'clipboardWrite'],
     host_permissions: [
       'https://www.youtube.com/*',
       'http://localhost:4006/*',

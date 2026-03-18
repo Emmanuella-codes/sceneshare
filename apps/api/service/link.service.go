@@ -60,7 +60,7 @@ func (s *LinkService) CreateLink(ctx context.Context, input *dtos.CreateLinkInpu
 
 	// Retry on rare code collisions instead of surfacing them as 500s.
 	var created *models.Link
-	for attempt := 0; attempt < maxCreateAttempts; attempt++ {
+	for range maxCreateAttempts {
 		code, err := gonanoid.Generate(alphabet, codeLength)
 		if err != nil {
 			return nil, fmt.Errorf("generating code: %w", err)
@@ -169,7 +169,7 @@ func toResponse(l *models.Link, baseURL string) *dtos.LinkResponse {
 	r := &dtos.LinkResponse{
 		ID:           l.ID,
 		ShortCode:    l.ShortCode,
-		ShortURL:     fmt.Sprintf("%s/%s", baseURL, l.ShortCode),
+		ShortURL:     fmt.Sprintf("%s/r/%s", baseURL, l.ShortCode),
 		Platform:     string(l.Platform),
 		ContentID:    l.ContentID,
 		TimestampS:   l.TimestampS,

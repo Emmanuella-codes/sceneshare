@@ -3,6 +3,7 @@ export type Platform = 'youtube' | 'netflix' | 'prime';
 export interface Link {
     id: string;
     short_code: string;
+    short_url: string;
     platform: Platform;
     content_id: string;
     timestamp_s: number;
@@ -10,6 +11,7 @@ export interface Link {
     title: string | null;
     thumbnail: string | null;
     click_count: number;
+    owner_token: string | null;
     created_at: string;
     expires_at: string | null;
 }
@@ -20,7 +22,7 @@ export interface CreateLinkPayload {
     timestamp_s: number;
     title?: string;
     thumbnail?: string;
-    expires_in?: string;
+    expires_in?: number;
 }
 
 export interface VideoInfo {
