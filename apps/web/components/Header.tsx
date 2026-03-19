@@ -22,10 +22,10 @@ export default function Header({ view, link }: { view: "landing" | "redirect"; l
                     ? scrolled
                         ? "border-b border-black/10 bg-white/80 backdrop-blur-md"
                         : "border-b border-transparent bg-transparent"
-                    : "border-b border-border-subtle bg-canvas/80 backdrop-blur-md"
+                    : "border-b border-black/10 bg-white/80 backdrop-blur-md"
             }`}
         >
-            <span className={`font-display text-xl tracking-tight ${view === "landing" ? "text-black" : "text-text-primary"}`}>
+            <span className={`font-display text-xl tracking-tight ${view === "landing" ? "text-black" : "text-black"}`}>
                 Scene<span className="text-amber-500">Share</span>
             </span>
             {view === "landing" && (
@@ -37,7 +37,7 @@ export default function Header({ view, link }: { view: "landing" | "redirect"; l
                 </a> 
             )}
             {view === "redirect" && (
-                <div className="flex items-center gap-2 text-xs text-text-muted font-mono">
+                <div className="flex items-center gap-2 text-xs text-black/60 font-mono">
                     <span
                         className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse-dot"
                     />
