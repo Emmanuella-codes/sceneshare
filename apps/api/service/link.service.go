@@ -26,11 +26,18 @@ var ErrForbidden = errors.New("forbidden")
 var ErrUnsupportedPlatform = errors.New("unsupported platform")
 
 type LinkService struct {
-	store   *store.Store
+	store   linkStore
 	baseURL string
 }
 
-func NewLinkService(store *store.Store, baseURL string) *LinkService {
+type linkStore interface {
+	CreateLink(ctx context.Context, params dtos.CreateLinkParams) (*models.Link, error)
+	GetLinkByCode(ctx context.Context, code string) (*models.Link, error)
+	DeleteLink(ctx context.Context, code, token string) error
+	IncrementClickCount(ctx context.Context, event models.ClickEvent) error
+}
+
+func NewLinkService(store linkStore, baseURL string) *LinkService {
 	return &LinkService{store: store, baseURL: baseURL}
 }
 
