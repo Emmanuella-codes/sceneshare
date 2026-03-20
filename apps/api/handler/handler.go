@@ -1,18 +1,29 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/Emmanuella-codes/sceneshare/api/dtos"
+	"github.com/Emmanuella-codes/sceneshare/api/models"
 	"github.com/Emmanuella-codes/sceneshare/api/service"
 	"github.com/Emmanuella-codes/sceneshare/api/utils"
 	"github.com/go-chi/chi/v5"
 )
 
+type linkService interface {
+	CreateLink(ctx context.Context, input *dtos.CreateLinkInput) (*dtos.LinkResponse, error)
+	GetLink(ctx context.Context, code string) (*dtos.LinkResponse, error)
+	DeleteLink(ctx context.Context, code, token string) error
+	GetStats(ctx context.Context, code string) (*dtos.StatsResponse, error)
+	GetLinkForRedirect(ctx context.Context, code string) (*models.Link, error)
+	RecordClick(id string, userAgent, referer string)
+}
+
 type Handler struct {
-	links *service.LinkService
+	links linkService
 }
 
 type errorResponse struct {
@@ -20,7 +31,7 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
-func New(links *service.LinkService) *Handler {
+func New(links linkService) *Handler {
 	return &Handler{links: links}
 }
 
