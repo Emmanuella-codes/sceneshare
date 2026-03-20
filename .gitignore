@@ -5,6 +5,7 @@ dist/
 output/
 *.zip
 flow/
+.gocache/
 
 # yarn berry
 .yarn/*
